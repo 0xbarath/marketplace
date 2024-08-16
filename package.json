@@ -1,5 +1,4 @@
 {
-  "name": "hardhat-project",
   "scripts": {
     "clean": "rm -rf ./artifacts ./cache ./coverage ./coverage.json ./typechain-types ./dist ./typechain",
     "compile": "hardhat compile",

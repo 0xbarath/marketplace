@@ -10,6 +10,7 @@ interface ILoanMarketplace {
     event LoanRepaymentDefaulted(uint loanId);
     event LoanLTVDefault(uint loanId);
     event LoanLiquidated(uint loanId);
+    event LoanMarketplaceCreated(address loanMarketplace);
 
     enum LoanStatus {
         ACTIVE,
@@ -29,9 +30,8 @@ interface ILoanMarketplace {
     }
 
     struct OfferRequest {
-        uint listingId;
         address lender;
-        address borrower;
+        uint listingId;
         uint loanAmount;
         uint repayAmount;
         uint loanDuration;

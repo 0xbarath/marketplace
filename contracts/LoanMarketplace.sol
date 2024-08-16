@@ -9,6 +9,7 @@ import "./interfaces/ILoanMarketplace.sol";
 import "./interfaces/IPriceOracle.sol";
 import "./interfaces/IPool.sol";
 import "./interfaces/IEscrow.sol";
+import "./LoanMarketplaceFactory.sol";
 /**
 Design decisions:
 * One funding token for simplicity
@@ -34,6 +35,17 @@ contract LoanMarketplace is ILoanMarketplace {
     mapping(uint256 => bytes32) public offers;
     mapping(uint256 => Loan) public loans;
 
+    constructor(address _paymentToken, address _priceOracle, address factory) {
+        require(_paymentToken != address(0), "Invalid payment token address");
+        require(_priceOracle != address(0), "Invalid price oracle address");
+        require(factory != address(0), "Invalid factory address");
+        paymentToken = IERC20(_paymentToken);
+        priceOracle = IPriceOracle(_priceOracle);
+        pool = LoanMarketplaceFactory(factory).deployPool(address(this), _paymentToken);
+        escrow = LoanMarketplaceFactory(factory).deployEscrow(address(this));
+        emit LoanMarketplaceCreated(address(this));
+    }
+
     function getPaymentToken() external view returns (address) {
         return address(paymentToken);
     }
@@ -43,6 +55,7 @@ contract LoanMarketplace is ILoanMarketplace {
         require(priceOracle.isSupportedAsset(listing.assetContract), "Asset not supported");
         require(IERC721(listing.assetContract).ownerOf(listing.assetTokenId) == listing.borrower, "Borrower does not own asset");
         require(IERC721(listing.assetContract).getApproved(listing.assetTokenId) == address(escrow), "Contract not approved to transfer asset");
+        require(isAssetUnderMaxLTV(listing.assetContract, listing.maxLTV, listing.loanAmount), "Loan amount exceeds LTV");
         listingId = ++lastListingId;
         listings[listingId] = keccak256(abi.encode(listing));
         emit ListingCreated(listingId, listing.borrower, listing.assetContract, listing.assetTokenId, listing.loanAmount, listing.repayAmount, listing.loanDuration);
@@ -54,7 +67,7 @@ contract LoanMarketplace is ILoanMarketplace {
         require(listings[offerRequest.listingId] == expectedListingHash, "Loan does not exist");
         require(offerRequest.lender != offerRequest.listing.borrower, "Lender cannot be borrower");
         require(pool.balance(offerRequest.lender) >= offerRequest.loanAmount, "Insufficient funds");
-
+        require(isAssetUnderMaxLTV(offerRequest.listing.assetContract, offerRequest.maxLTV, offerRequest.loanAmount), "Loan amount exceeds LTV");
         offerId = ++lastOfferId;
         Offer memory offer = Offer({
             lender: offerRequest.lender,
@@ -67,7 +80,6 @@ contract LoanMarketplace is ILoanMarketplace {
             maxLTV: offerRequest.maxLTV
         });
         offers[offerId] = keccak256(abi.encode(offer));
-
         emit OfferCreated(offerId, offer.lender, offer.borrower, offer.assetContract, offer.assetTokenId, offer.loanAmount, offer.repayAmount, offer.loanDuration);
     }
 
@@ -76,8 +88,8 @@ contract LoanMarketplace is ILoanMarketplace {
         bytes32 expectedOfferHash = keccak256(abi.encode(offer));
         require(offers[offerId] == expectedOfferHash, "Offer does not exist");
         require(pool.balance(offer.lender) >= offer.loanAmount, "Insufficient funds");
-
-        loanId = ++loanId;
+        require(isAssetUnderMaxLTV(offer.assetContract, offer.maxLTV, offer.loanAmount), "Loan amount exceeds LTV");
+        loanId = ++lastLoanId;
         Loan memory loan = Loan({
             lender: offer.lender,
             borrower: offer.borrower,
@@ -104,8 +116,7 @@ contract LoanMarketplace is ILoanMarketplace {
         require(block.timestamp >= loan.loanStartTime, "Loan has ended");
         require(block.timestamp <= loan.loanEndTime, "Loan has ended");
         loans[loanId].status = LoanStatus.REPAID;
-        IERC20(paymentToken).safeTransferFrom(loan.borrower, loan.lender, loan.repayAmount);
-        pool.transfer(loan.borrower, loan.lender, loan.loanAmount);
+        pool.transfer(loan.borrower, loan.lender, loan.repayAmount);
         escrow.releaseFromEscrow(loanId, loan.assetContract, loan.assetTokenId, loan.borrower);
         emit LoanRepaid(loanId);
     }
@@ -125,12 +136,16 @@ contract LoanMarketplace is ILoanMarketplace {
         require(loanId <= lastLoanId, "Loan does not exist");
         Loan memory loan = loans[loanId];
         require(loan.status == LoanStatus.ACTIVE, "Loan not active");
-        uint assetPrice = priceOracle.getAssetPrice(loan.assetContract, loan.assetTokenId);
-        uint currentLoanValue = assetPrice.mulDiv(loan.maxLTV, BIPS);
-        if (currentLoanValue < loan.repayAmount) {
+        if (!isAssetUnderMaxLTV(loan.assetContract, loan.maxLTV, loan.repayAmount)) {
             loans[loanId].status = LoanStatus.DEFAULTED;
             emit LoanLTVDefault(loanId);
         }
+    }
+
+    function isAssetUnderMaxLTV(address asset, uint maxLTV, uint amount) internal view returns (bool) {
+        uint assetPrice = priceOracle.getAssetPrice(asset);
+        uint maxValueForLoan = assetPrice.mulDiv(maxLTV, BIPS);
+        return maxValueForLoan > amount;
     }
 
     function liquidate(uint loanId) external override {

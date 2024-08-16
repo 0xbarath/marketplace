@@ -5,18 +5,24 @@ import {IPool} from "./interfaces/IPool.sol";
 import {ILoanMarketplace} from "./interfaces/ILoanMarketplace.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract Pool is IPool {
+contract Pool is IPool, Initializable {
     using SafeERC20 for IERC20;
 
     address public market;
     address public paymentToken;
     mapping(address => uint) private _balances;
 
-    constructor(address _market) {
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address _market, address _paymentToken) public initializer {
         require(_market != address(0), "Invalid market address");
+        require(_paymentToken != address(0), "Invalid payment token address");
         market = _market;
-        paymentToken = ILoanMarketplace(_market).getPaymentToken();
+        paymentToken = _paymentToken;
         emit PoolCreated(_market, paymentToken);
     }
 
