@@ -18,9 +18,10 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    goerli: {
-      url: process.env.GOERLI_URL || "",
+    holesky: {
+      url: process.env.HOLESKY_URL || "",
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      blockGasLimit: 1245000000,
     },
   },
 };
