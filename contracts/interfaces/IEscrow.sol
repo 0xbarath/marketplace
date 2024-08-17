@@ -10,6 +10,4 @@ interface IEscrow {
 
     function releaseFromEscrow(uint loanId, address asset, uint assetTokenId, address to) external;
 
-    function hasEscrowForLoan(uint loanId) external view returns (bool);
-
 }

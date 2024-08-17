@@ -10,13 +10,6 @@ import "./interfaces/IPriceOracle.sol";
 import "./interfaces/IPool.sol";
 import "./interfaces/IEscrow.sol";
 import "./LoanMarketplaceFactory.sol";
-/**
-Design decisions:
-* One funding token for simplicity
-* No signing of listing or offers for simplicity
-* For simplicity stored entire loan object but doesn't have to be stored on-chain
-*/
-
 
 contract LoanMarketplace is ILoanMarketplace {
     using SafeERC20 for IERC20;
@@ -46,10 +39,6 @@ contract LoanMarketplace is ILoanMarketplace {
         emit LoanMarketplaceCreated(address(this));
     }
 
-    function getPaymentToken() external view returns (address) {
-        return address(paymentToken);
-    }
-
     function createListing(Listing memory listing) external override returns (uint listingId) {
         require(listing.borrower == msg.sender, "Borrower must create listing");
         require(priceOracle.isSupportedAsset(listing.assetContract), "Asset not supported");
@@ -70,8 +59,9 @@ contract LoanMarketplace is ILoanMarketplace {
         require(isAssetUnderMaxLTV(offerRequest.listing.assetContract, offerRequest.maxLTV, offerRequest.loanAmount), "Loan amount exceeds LTV");
         offerId = ++lastOfferId;
         Offer memory offer = Offer({
+            offerId: offerId,
             lender: offerRequest.lender,
-            borrower: offerRequest.borrower,
+            borrower: offerRequest.listing.borrower,
             assetContract: offerRequest.listing.assetContract,
             assetTokenId: offerRequest.listing.assetTokenId,
             loanAmount: offerRequest.loanAmount,
@@ -83,10 +73,10 @@ contract LoanMarketplace is ILoanMarketplace {
         emit OfferCreated(offerId, offer.lender, offer.borrower, offer.assetContract, offer.assetTokenId, offer.loanAmount, offer.repayAmount, offer.loanDuration);
     }
 
-    function acceptOffer(uint offerId, Offer memory offer) external override returns (uint loanId) {
+    function acceptOffer(Offer memory offer) external override returns (uint loanId) {
         require(offer.borrower == msg.sender, "Borrower must accept offer");
         bytes32 expectedOfferHash = keccak256(abi.encode(offer));
-        require(offers[offerId] == expectedOfferHash, "Offer does not exist");
+        require(offers[offer.offerId] == expectedOfferHash, "Offer does not exist");
         require(pool.balance(offer.lender) >= offer.loanAmount, "Insufficient funds");
         require(isAssetUnderMaxLTV(offer.assetContract, offer.maxLTV, offer.loanAmount), "Loan amount exceeds LTV");
         loanId = ++lastLoanId;

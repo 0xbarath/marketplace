@@ -43,6 +43,7 @@ interface ILoanMarketplace {
         address lender;
         address borrower;
         address assetContract;
+        uint offerId;
         uint assetTokenId;
         uint loanAmount;
         uint repayAmount;
@@ -63,13 +64,11 @@ interface ILoanMarketplace {
         LoanStatus status;
     }
 
-    function getPaymentToken() external view returns (address);
-
     function createListing(Listing memory listing) external returns (uint listingId);
 
     function makeOffer(OfferRequest memory offerRequest) external returns (uint offerId);
 
-    function acceptOffer(uint offerId, Offer memory offer) external returns (uint loanId);
+    function acceptOffer(Offer memory offer) external returns (uint loanId);
 
     function repay(uint loanId) external;
 

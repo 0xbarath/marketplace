@@ -44,8 +44,4 @@ contract Escrow is IEscrow, Initializable, ERC721HolderUpgradeable {
         IERC721(asset).safeTransferFrom(address(this), to, assetTokenId);
         emit EscrowRelease(loanId, asset, assetTokenId, to);
     }
-
-    function hasEscrowForLoan(uint loanId) external view override returns (bool) {
-        return _escrowBalances[loanId][msg.sender][0] == 1;
-    }
 }
