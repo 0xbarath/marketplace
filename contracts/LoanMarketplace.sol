@@ -47,7 +47,7 @@ contract LoanMarketplace is ILoanMarketplace {
         require(isAssetUnderMaxLTV(listing.assetContract, listing.maxLTV, listing.loanAmount), "Loan amount exceeds LTV");
         listingId = ++lastListingId;
         listings[listingId] = keccak256(abi.encode(listing));
-        emit ListingCreated(listingId, listing.borrower, listing.assetContract, listing.assetTokenId, listing.loanAmount, listing.repayAmount, listing.loanDuration);
+        emit ListingCreated(listingId, listing.borrower, listing.assetContract, listing.assetTokenId, listing.loanAmount, listing.repayAmount, listing.loanDuration, listing.maxLTV);
     }
 
     function makeOffer(OfferRequest memory offerRequest) external override returns (uint offerId) {
@@ -70,7 +70,7 @@ contract LoanMarketplace is ILoanMarketplace {
             maxLTV: offerRequest.maxLTV
         });
         offers[offerId] = keccak256(abi.encode(offer));
-        emit OfferCreated(offerId, offer.lender, offer.borrower, offer.assetContract, offer.assetTokenId, offer.loanAmount, offer.repayAmount, offer.loanDuration);
+        emit OfferCreated(offerId, offerRequest.listingId, offer.lender, offer.borrower, offer.assetContract, offer.assetTokenId, offer.loanAmount, offer.repayAmount, offer.loanDuration, offer.maxLTV);
     }
 
     function acceptOffer(Offer memory offer) external override returns (uint loanId) {
@@ -95,7 +95,7 @@ contract LoanMarketplace is ILoanMarketplace {
         loans[loanId] = loan;
         pool.transfer(loan.lender, loan.borrower, loan.loanAmount);
         escrow.depositToEscrow(loanId, loan.assetContract, loan.assetTokenId, offer.borrower);
-        emit LoanCreated(loanId);
+        emit LoanCreated(loanId, offer.offerId);
     }
 
     function repay(uint loanId) external override {

@@ -3,9 +3,9 @@ pragma solidity 0.8.24;
 
 interface ILoanMarketplace {
 
-    event ListingCreated(uint loanId, address borrower, address assetContract, uint assetTokenId, uint loanAmount, uint repayAmount, uint loanDuration);
-    event OfferCreated(uint loanId, address lender, address borrower, address assetContract, uint assetTokenId, uint loanAmount, uint repayAmount, uint loanDuration);
-    event LoanCreated(uint loanId);
+    event ListingCreated(uint listingId, address borrower, address assetContract, uint assetTokenId, uint loanAmount, uint repayAmount, uint loanDuration, uint maxLTV);
+    event OfferCreated(uint offerId, uint listingId, address lender, address borrower, address assetContract, uint assetTokenId, uint loanAmount, uint repayAmount, uint loanDuration, uint maxLTV);
+    event LoanCreated(uint loanId, uint offerId);
     event LoanRepaid(uint loanId);
     event LoanRepaymentDefaulted(uint loanId);
     event LoanLTVDefault(uint loanId);

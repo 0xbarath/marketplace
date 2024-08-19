@@ -33,7 +33,7 @@ async function main() {
     await txn.wait(1);
     await oracle.setAssetPrice(await asset.getAddress(), ethers.parseEther("200"));
     console.log(`NFT1 price set to 200`);
-    //await initiateDefaultSimpleLoan(operator, operator, marketplace, asset);
+    await initiateDefaultSimpleLoan(operator, operator, marketplace, asset);
 }
 
 async function initiateDefaultSimpleLoan(
@@ -70,7 +70,7 @@ async function initiateSimpleLoan(
     tokenId: number) {
     const loanAmount = ethers.parseEther("100");
     const repayAmount = ethers.parseEther("110");
-    const loanDuration = 60 * 60 * 24 * 30;
+    const loanDuration = 60 * 60 * 24;
     const mintTxn = await paymentToken.mint(lender.address, ethers.parseEther("100"));
     await mintTxn.wait(1);
     const approveTxn = await paymentToken.connect(lender).approve(await marketplace.pool(), loanAmount);
