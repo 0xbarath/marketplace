@@ -53,7 +53,7 @@ contract LoanMarketplace is ILoanMarketplace {
     function makeOffer(OfferRequest memory offerRequest) external override returns (uint offerId) {
         require(offerRequest.lender == msg.sender, "Lender must create offer");
         bytes32 expectedListingHash = keccak256(abi.encode(offerRequest.listing));
-        require(listings[offerRequest.listingId] == expectedListingHash, "Loan does not exist");
+        require(listings[offerRequest.listingId] == expectedListingHash, "listing does not exist");
         require(offerRequest.lender != offerRequest.listing.borrower, "Lender cannot be borrower");
         require(pool.balance(offerRequest.lender) >= offerRequest.loanAmount, "Insufficient funds");
         require(isAssetUnderMaxLTV(offerRequest.listing.assetContract, offerRequest.maxLTV, offerRequest.loanAmount), "Loan amount exceeds LTV");
