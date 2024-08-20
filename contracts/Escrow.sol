@@ -3,13 +3,11 @@ pragma solidity 0.8.24;
 
 import {IEscrow} from "./interfaces/IEscrow.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 
 contract Escrow is IEscrow, Initializable, ERC721HolderUpgradeable {
-    using SafeERC20 for IERC20;
 
     mapping(uint => mapping(address => mapping(uint => uint))) private _escrowBalances;
     address public market;
