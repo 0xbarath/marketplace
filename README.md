@@ -28,7 +28,7 @@ NFT1 deployed at 0x8559E69C8b05b690c5D9a4475fd89107F81F38Bd
 
 ## Overview
 
-The Marketplace contract is a decentralized marketplace for collateralized loans. It allows users to create loan listings, which other users can then fund. The contract is designed to be used with ERC721 tokens, which represent the collateral for the loan. The contract is also designed to be used with an oracle, which provides the current price of the collateral token.
+The Marketplace contract is a decentralized marketplace for collateralized loans. Borrowers can get loans by collateralizing their asset (NFTs). Lenders can find the listings from borrowers and provide their offers for loans after depositing funds in the pool that will be used to fund the collateralized loans. On loan default, the collateral asset can be liquidated and retrieved by the lenders. On proper repayment of loan with interest the collateral asset is returned to the borrower
 
 A typical loan lifecycle consists of the following stages:
 * **Listing**: Borrower creates a loan listing, specifying the collateral token, the loan amount, the loan duration, and the maximum loan-to-value (LTV) ratio.
@@ -36,7 +36,7 @@ A typical loan lifecycle consists of the following stages:
 * **AcceptOffer**: Borrower accepts an offer, creating a loan agreement.
 * **Repay**: Borrower repays the loan, including the principal and interest.
 
-The loan marketplace also consists of a Escrow, Pool and a Price Oracle. The Escrow is used to escrow the collateral asset and can only be operated by marketplace. Lenders deposit the funds for lending in the pool and the borrowers fund is also deposited in the pool
+The loan marketplace also consists of a Escrow, Pool and Price Oracle. The Escrow is used to escrow the collateral asset and can only be operated by marketplace. Lenders deposit the funds for lending in the pool and the borrowers fund is also deposited in the pool
 
 There are two different ways the loan default:
 1. If the loan is not repaid before the loan end time
@@ -46,7 +46,23 @@ Any loan that has triggered one of the default condition can be moved from `Acti
 
 For limiting scope the project uses a simple price oracle and the price is a floor price of the NFT. A better approach is to integrate with existing NFT floor price oracles from Chainlink and Redstone. The two main methodology that oracles use are Time weighted average price (TWAP) and Volume weighted average price (VWAP)
 
-There are several market manipulation methods like Spoofing, wash trading, cross-market manipulation that needs to be considered while adopting a price oracle strategy 
+There are several market manipulation methods like Spoofing, wash trading, cross-market manipulation that needs to be considered while adopting a price oracle strategy
+
+### Installation
+
+```yarn install```
+
+### compile contracts
+```yarn compile```
+
+### tests
+```yarn test```
+
+### test coverage
+```yarn coverage```
+
+
+
 
 
 
