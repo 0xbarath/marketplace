@@ -28,7 +28,7 @@ NFT1 deployed at 0x8559E69C8b05b690c5D9a4475fd89107F81F38Bd
 
 ## Overview
 
-The Marketplace contract is a decentralized marketplace for loans. It allows users to create loan listings, which other users can then fund. The contract is designed to be used with ERC721 tokens, which represent the collateral for the loan. The contract is also designed to be used with an oracle, which provides the current price of the collateral token.
+The Marketplace contract is a decentralized marketplace for collateralized loans. It allows users to create loan listings, which other users can then fund. The contract is designed to be used with ERC721 tokens, which represent the collateral for the loan. The contract is also designed to be used with an oracle, which provides the current price of the collateral token.
 
 A typical loan lifecycle consists of the following stages:
 * **Listing**: Borrower creates a loan listing, specifying the collateral token, the loan amount, the loan duration, and the maximum loan-to-value (LTV) ratio.
